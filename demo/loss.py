@@ -50,12 +50,6 @@ class TextureConsistencyLoss(nn.Module):
         return loss
 
 
-class TotalLoss(nn.Module):
-    def __init__(self, original_image, reconstructed_image, device="cuda"):
-        super().__init__()
-        self.device = device
-        self.original_image = original_image
-        self.reconstructed_image = reconstructed_image
 
     def calculate_loss(self):
         reconstruction_loss = ReconstructionLoss(self.device, self.original_image, self.reconstructed_image)
