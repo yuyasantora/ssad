@@ -6,6 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
+from PIL import Image
 
 """データセットの読み込み"""
 
@@ -14,6 +15,17 @@ import torchvision.transforms as transforms
 import torch
 import torchvision
 from torchvision.datasets import CocoDetection
+import torchvision.transforms as transforms
+
+class CustomCompose:
+    def __init__(self, transforms):
+        self.transforms = transforms
+
+    def __call__(self, img, target):
+        for t in self.transforms:
+            img = t(img)
+        return img, target
+    
 
 class MyCocoDetection(CocoDetection):
     def __init__(self, root, annFile, transforms=None):
@@ -23,6 +35,9 @@ class MyCocoDetection(CocoDetection):
     def __getitem__(self, idx):
         # CocoDetection.__getitem__ -> (PIL.Image, list of annotation dict)
         img, anno_list = super(MyCocoDetection, self).__getitem__(idx)
+        
+
+        # 画像がPIL Imageであることを確認
 
         # anno_list は以下のようなリスト:
         # [
@@ -74,9 +89,6 @@ class MyCocoDetection(CocoDetection):
         target["area"] = areas
         target["iscrowd"] = iscrowd
 
-        # もし拡張や前処理など transforms がある場合は、img と target に適用
-        if self.transforms is not None:
-            img = self.transforms(img)
 
         return img, target
 

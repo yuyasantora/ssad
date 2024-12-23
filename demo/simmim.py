@@ -4,13 +4,12 @@ import numpy as np
 
 
 class MaskGenerator:
-    def __init__(self, image,input_size=512, mask_patch_size=32, model_patch_size=4, mask_ratio=0.6):
-        self.image = image
+    def __init__(self, batch_size, input_size=512, mask_patch_size=16, model_patch_size=4, mask_ratio=0.6):
+        self.batch_size = batch_size
         self.input_size = input_size
         self.mask_patch_size = mask_patch_size
         self.model_patch_size = model_patch_size
         self.mask_ratio = mask_ratio
-
 
         assert self.input_size % self.model_patch_size == 0, "input_size must be divisible by model_patch_size"
         assert self.input_size % self.mask_patch_size == 0, "input_size must be divisible by mask_patch_size"
@@ -18,18 +17,26 @@ class MaskGenerator:
         self.rand_size = self.input_size // self.model_patch_size
         self.scale = self.mask_patch_size // self.model_patch_size
 
-        self.token_count = self.rand_size **2
+        self.token_count = self.rand_size ** 2
         self.mask_count = int(np.ceil(self.token_count * self.mask_ratio))
 
     def __call__(self):
+        masks = []
+        for _ in range(self.batch_size):
+            mask_idx = np.random.permutation(self.token_count)[:self.mask_count]
+            mask = np.zeros(self.token_count, dtype=int)
+            mask[mask_idx] = 1
 
-        mask_idx = np.random.permutation(self.token_count)[:self.mask_count]
-        mask = np.zeros(self.token_count, dtype=int)
-        mask[mask_idx] = 1
+            mask = mask.reshape((self.rand_size, self.rand_size))
+            mask = mask.repeat(self.scale, axis=0).repeat(self.scale, axis=1)
 
-        mask = mask.reshape((self.rand_size, self.rand_size))
-        mask = mask.repeat(self.scale, axis=0).repeat(self.scale, axis=1)
+            masks.append(mask)
+        
+        # バッチ次元を追加してTensorに変換
+        masks = np.stack(masks, axis=0)
+        return torch.tensor(masks, dtype=torch.float32)
 
+        """
         # 画像の形状に合わせてマスクをリシェイプ
         if len(self.image.shape) == 3:
             H, W, C = self.image.shape
@@ -44,5 +51,5 @@ class MaskGenerator:
         image = self.image * (1 - mask)
 
         return image
-    
+        """
 
