@@ -12,7 +12,7 @@ class FCOSDetector(nn.Module):
         self.model.to(self.device)
         # バックボーンをImageEncoderと共有
         self.model.backbone = ResnetEncoder(self.device)
-        self.model.head.classification_head.num_classes = num_classes+1
+        self.model.head.classification_head.cls_logits = nn.Conv2d(256, num_classes+1, kernel_size=3, stride=1, padding=1)
 
     def forward(self, image):
         return self.model(image)
