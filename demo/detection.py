@@ -16,7 +16,7 @@ class FCOSDetector(nn.Module):
         self.model.backbone = ResnetEncoder(self.device)
         # 分類ヘッドをクラス数+1に変更
         num_anchors = self.model.head.classification_head.num_anchors 
-        self.model.head.classification_head.cls_logits = FCOSClassificationHead(in_channels=256, num_classes=num_classes+1, num_anchors=num_anchors)
+        self.model.head.classification_head = FCOSClassificationHead(in_channels=256, num_classes=num_classes+1, num_anchors=num_anchors)
 
         # カスタムGroupNormレイヤーの挿入
         ## num_groupsは8に設定
