@@ -16,7 +16,7 @@ class Recostruction(nn.Module):
             nn.ReLU(inplace=True),
 
 
-            nn.ConvTranspose2d(64, 3, kernel_size=3, stride=2, padding=1),
+            nn.ConvTranspose2d(64, 3, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid()
         )
 

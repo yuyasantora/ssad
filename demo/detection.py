@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torchvision.models.detection import fcos_resnet50_fpn
 from torchvision.models.detection.fcos import FCOSClassificationHead
+from torchvision.models.detection.anchor_utils import AnchorGenerator
 
 from demo.image_encoder import ResnetEncoder
 
@@ -14,6 +15,7 @@ class FCOSDetector(nn.Module):
         self.model.to(self.device)
         # バックボーンをImageEncoderと共有
         self.model.backbone = ResnetEncoder(self.device)
+        self.backbone = self.model.backbone
         # 分類ヘッドをクラス数+1に変更
         num_anchors = self.model.head.classification_head.num_anchors 
         self.model.head.classification_head = FCOSClassificationHead(in_channels=256, num_classes=num_classes+1, num_anchors=num_anchors)
@@ -24,15 +26,15 @@ class FCOSDetector(nn.Module):
             if isinstance(child, nn.Sequential):
                 for sub_name, sub_child in child.named_children():
                     if isinstance(sub_child, nn.GroupNorm):
-                        sub_child.num_groups = 8
+                        sub_child.num_groups = num_groups
 
         for name, child in self.model.head.regression_head.named_children():
             if isinstance(child, nn.Sequential):
                 for sub_name, sub_child in child.named_children():
                     if isinstance(sub_child, nn.GroupNorm):
-                        sub_child.num_groups = 8
+                        sub_child.num_groups = num_groups
         
-    def forward(self, image, target):
+    def forward(self, image, target=None):
         return self.model(image, target)
     
 
