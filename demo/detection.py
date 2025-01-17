@@ -7,7 +7,7 @@ from torchvision.models.detection.anchor_utils import AnchorGenerator
 from demo.image_encoder import ResnetEncoder
 
 class FCOSDetector(nn.Module):
-    def __init__(self, device="cuda",num_classes=32, num_groups=8):
+    def __init__(self, device="cuda",num_classes=32, num_groups=8,encoder_weight="encoder_1000.pth"):
         super().__init__()
 
         self.device = device
@@ -15,7 +15,11 @@ class FCOSDetector(nn.Module):
         self.model.to(self.device)
         # バックボーンをImageEncoderと共有
         self.model.backbone = ResnetEncoder(self.device)
+
+        # エンコーダの重みがあれば読み込む
         self.backbone = self.model.backbone
+        if encoder_weight is not None:
+            self.backbone.load_state_dict(torch.load(encoder_weight, map_location=self.device))
         # 分類ヘッドをクラス数+1に変更
         num_anchors = self.model.head.classification_head.num_anchors 
         self.model.head.classification_head = FCOSClassificationHead(in_channels=256, num_classes=num_classes+1, num_anchors=num_anchors)
